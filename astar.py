@@ -1,3 +1,4 @@
+from cmath import sqrt
 import pygame
 import math
 from queue import PriorityQueue
@@ -16,6 +17,7 @@ PURPLE = (128, 0, 128)
 ORANGE = (255, 165 ,0)
 GREY = (128, 128, 128)
 TURQUOISE = (64, 224, 208)
+
 
 class Spot:
 	def __init__(self, row, col, width, total_rows):
@@ -91,7 +93,9 @@ class Spot:
 def h(p1, p2):
 	x1, y1 = p1
 	x2, y2 = p2
-	return abs(x1 - x2) + abs(y1 - y2)
+	# return abs(x1 - x2) + abs(y1 - y2) #mahanttan distance
+	return math.dist(p1,p2) #euclidean distance
+	# return max(abs(x1 - x2),abs(y1 - y2)) #chebyshev distance
 
 
 def reconstruct_path(came_from, current, draw):
@@ -147,30 +151,30 @@ def algorithm(draw, grid, start, end):
 	return False
 
 
-def make_grid(rows, width):
+def make_grid(rows, width): # draw object spot
 	grid = []
 	gap = width // rows
 	for i in range(rows):
 		grid.append([])
-		for j in range(rows):
+		for j in range(rows): #column
 			spot = Spot(i, j, gap, rows)
 			grid[i].append(spot)
 
 	return grid
 
 
-def draw_grid(win, rows, width):
+def draw_grid(win, rows, width): # draw line of grid
 	gap = width // rows
 	for i in range(rows):
-		pygame.draw.line(win, GREY, (0, i * gap), (width, i * gap))
+		pygame.draw.line(win, GREY, (0, i * gap), (width, i * gap)) # horizontal line 
 		for j in range(rows):
-			pygame.draw.line(win, GREY, (j * gap, 0), (j * gap, width))
+			pygame.draw.line(win, GREY, (j * gap, 0), (j * gap, width)) # vertical line
 
 
-def draw(win, grid, rows, width):
+def draw(win, grid, rows, width): #main draw function
 	win.fill(WHITE)
 
-	for row in grid:
+	for row in grid: #draw spot first
 		for spot in row:
 			spot.draw(win)
 
@@ -189,8 +193,8 @@ def get_clicked_pos(pos, rows, width):
 
 
 def main(win, width):
-	ROWS = 50
-	grid = make_grid(ROWS, width)
+	ROWS = 20
+	grid = make_grid(ROWS, WIDTH)
 
 	start = None
 	end = None
@@ -202,7 +206,7 @@ def main(win, width):
 			if event.type == pygame.QUIT:
 				run = False
 
-			if pygame.mouse.get_pressed()[0]: # LEFT
+			if pygame.mouse.get_pressed()[0]: # LEFT MOUSE
 				pos = pygame.mouse.get_pos()
 				row, col = get_clicked_pos(pos, ROWS, width)
 				spot = grid[row][col]
@@ -217,7 +221,7 @@ def main(win, width):
 				elif spot != end and spot != start:
 					spot.make_barrier()
 
-			elif pygame.mouse.get_pressed()[2]: # RIGHT
+			elif pygame.mouse.get_pressed()[2]: # RIGHT MOUSE
 				pos = pygame.mouse.get_pos()
 				row, col = get_clicked_pos(pos, ROWS, width)
 				spot = grid[row][col]

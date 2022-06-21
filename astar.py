@@ -8,9 +8,9 @@ import math
 from queue import PriorityQueue
 from array import *
 
-WIDTH = 500
+WIDTH = 600
 WIN = pygame.display.set_mode((WIDTH, WIDTH))
-pygame.display.set_caption("A* Path Finding Algorithm")
+pygame.display.set_caption("A* Path Finding aStar")
 
 RED = (255, 0, 0)
 GREEN = (0, 255, 0)
@@ -78,7 +78,7 @@ class Spot:
         pygame.draw.rect(
             win, self.color, (self.x, self.y, self.width, self.width))
 
-    def update_neighbors(self, grid):
+    def update_neighbors(self, grid): #4D
         self.neighbors = []
         # DOWN
         if self.row < self.total_rows - 1 and not grid[self.row + 1][self.col].is_barrier():
@@ -101,8 +101,8 @@ class Spot:
 def h(p1, p2):
     x1, y1 = p1
     x2, y2 = p2
-    return abs(x1 - x2) + abs(y1 - y2)  # mahanttan distance
-    # return math.dist(p1,p2) #euclidean distance
+    # return abs(x1 - x2) + abs(y1 - y2)  # mahanttan distance
+    return math.dist(p1,p2) #euclidean distance
     # return max(abs(x1 - x2),abs(y1 - y2)) #chebyshev distance
 
 
@@ -194,7 +194,7 @@ def greedy_bfs(draw, grid, start, end):
     return False
 
 
-def algorithm(draw, grid, start, end):
+def aStar(draw, grid, start, end):
     count = 0
     open_set = PriorityQueue()
     open_set.put((0, count, start))
@@ -274,16 +274,6 @@ def draw(win, grid, rows, width):  # main draw function
     pygame.display.update()
 
 
-def get_clicked_pos(pos, rows, width):
-    gap = width // rows
-    y, x = pos
-
-    row = y // gap
-    col = x // gap
-
-    return row, col
-
-
 def main(win, width):
     ROWS = 20
     grid = make_grid(ROWS, WIDTH)
@@ -298,41 +288,37 @@ def main(win, width):
             if event.type == pygame.QUIT:
                 run = False
 
-            if pygame.mouse.get_pressed()[0]:  # LEFT MOUSE
-                pos = pygame.mouse.get_pos()
-                row, col = get_clicked_pos(pos, ROWS, width)
-                spot = grid[row][col]
-                if not start and spot != end:
-                    start = spot
-                    start.make_start()
+            start = grid[0][0]  #make start node at row 0 column 0
+            start.make_start()
 
-                elif not end and spot != start:
-                    end = spot
-                    end.make_end()
+            end = grid[ROWS-1][ROWS-1] #make end node on the bottom rigth corner 
+            end.make_end()
 
-                elif spot != end and spot != start:
-                    spot.make_barrier()
+			### make obstacle ###
+            gap = WIDTH //ROWS
+            for i in [1,5,7,11,16]:
+                for j in [1,2,3,4,5,9,10,11,14,17,19]:					
+                    grid[i][j].make_barrier()
 
-            elif pygame.mouse.get_pressed()[2]:  # RIGHT MOUSE
-                pos = pygame.mouse.get_pos()
-                row, col = get_clicked_pos(pos, ROWS, width)
-                spot = grid[row][col]
-                spot.reset()
-                if spot == start:
-                    start = None
-                elif spot == end:
-                    end = None
+            for k in [11,16]:
+                grid[k][0].make_barrier()
+            for k in [10,11,12,13,14]:
+                for t in [3,5,8,14,15,18]:
+                    grid[k][t].make_barrier()
+			###########################
 
+			# press SPACE to start and update neighbors
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE and start and end:
                     for row in grid:
                         for spot in row:
                             spot.update_neighbors(grid)
 
-                    # algorithm(lambda: draw(win, grid, ROWS, width),
-                            #   grid, start, end)
-                    bfs(lambda: draw(win, grid, ROWS, width), grid, start, end)
-                    # greedy_bfs(lambda: draw(win, grid, ROWS, width),grid, start, end)
+                    # aStar(lambda: draw(win, grid, ROWS, width),grid,start,end)
+
+                    # bfs(lambda: draw(win, grid, ROWS, width), grid, start, end)
+
+                    greedy_bfs(lambda: draw(win, grid, ROWS, width),grid, start, end)
 
                 if event.key == pygame.K_c:
                     start = None

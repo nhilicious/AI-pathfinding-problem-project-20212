@@ -2,6 +2,7 @@ from cmath import sqrt
 from pickle import FALSE
 from tkinter import Widget
 from turtle import width
+import queue
 import pygame
 import math
 from queue import PriorityQueue
@@ -108,6 +109,39 @@ def reconstruct_path(came_from, current, draw):
 		current.make_path()
 		draw()
 
+def bfs(draw, grid, start, end): #function for BFS
+	count = 0
+	open_set = PriorityQueue()
+	open_set.put((count, start))
+	came_from = {}
+	visited = []
+	open_set_hash = {start}
+
+	while not open_set.empty():          # Creating loop to visit each node
+		for event in pygame.event.get():
+			if event.type == pygame.QUIT:
+				pygame.quit()
+		current = open_set.get()[1]
+		visited.append(current)
+		if current == end:
+			print(open_set.get()[0])
+			reconstruct_path(came_from, end, draw)
+			end.make_end()
+			return True
+
+		for neighbour in current.neighbors:
+			if (neighbour not in visited) and (neighbour not in open_set_hash):
+				came_from[neighbour] = current
+				# print( neighbour.get_pos())
+				count += 1
+				open_set_hash.add(neighbour);
+				open_set.put((count, neighbour))
+				neighbour.make_open()
+		draw()
+
+		if current != start:
+			current.make_closed()
+	return False
 
 def greedy_bfs(draw, grid, start, end):
 	count = 0
@@ -147,7 +181,6 @@ def greedy_bfs(draw, grid, start, end):
 
 		if current != start:
 			current.make_closed()
-
 	return False
 
 
@@ -237,8 +270,9 @@ def main(win, width):
 					for row in grid:
 						for spot in row:
 							spot.update_neighbors(grid)
-							
-					greedy_bfs(lambda: draw(win, grid, ROWS, width), grid, start, end)
+
+					# algorithm(lambda: draw(win, grid, ROWS, width), grid, start, end)
+					bfs(lambda: draw(win, grid, ROWS, width),grid, start, end)
 
 				if event.key == pygame.K_c:
 					start = None

@@ -157,11 +157,15 @@ def greedy_bfs(draw, grid, start, end):
     open_set = PriorityQueue()  # Candidates for next node consideration
     open_set.put((0, start))
     came_from = {}
+
+    # Visited nodes (Each node only gets visited once)
+    # Nodes is marked "Visited" if it is put in the PriorityQueue
     visited = [[False for x in range(50)]
-               for y in range(50)]  # Visited nodes (Each node only gets visited once)
+               for y in range(50)]
 
     # Potential cost for each node using a heuristic function
     f_score = {spot: float("inf") for row in grid for spot in row}
+
     # Potential cost for from starting node to destination node
     f_score[start] = h(start.get_pos(), end.get_pos())
 
@@ -174,6 +178,7 @@ def greedy_bfs(draw, grid, start, end):
                 pygame.quit()
 
         # Get node with least potential cost in PriorityQueue
+        # This would be chosen as the next node to travel through
         current = open_set.get()[1]
 
         if current == end:  # If destination is reached
@@ -181,15 +186,20 @@ def greedy_bfs(draw, grid, start, end):
             end.make_end()
             return True
 
-        for neighbor in current.neighbors:
+        for neighbor in current.neighbors:  # Consider each neighbour of current node
             row, col = neighbor.get_pos()
 
             if not visited[row][col]:
                 came_from[neighbor] = current
-                # Calculate potential cost of current nodes' neighbours
+
+                # Calculate potential cost of current node's neighbours
                 f_score[neighbor] = h(neighbor.get_pos(), end.get_pos())
-                visited[row][col] = True
+
+                # Add neighbour node to PriorityQueue
                 open_set.put((f_score[neighbor], neighbor))
+
+                # And set it as visited
+                visited[row][col] = True
                 neighbor.make_open()
         draw()
 

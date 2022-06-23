@@ -5,7 +5,7 @@ from turtle import width
 import queue
 import pygame
 import math
-from queue import PriorityQueue
+from queue import PriorityQueue, Queue
 from array import *
 
 WIDTH = 600
@@ -115,40 +115,48 @@ def reconstruct_path(came_from, current, draw):
 
 def bfs(draw, grid, start, end):  # function for BFS
     count = 0
-    open_set = PriorityQueue()
+    open_set = Queue()  # Candidates for next node consideration
     open_set.put((count, start))
     came_from = {}
+
+    # Visited nodes (Each node only gets visited once)
+    # Nodes is marked "Visited" if it is put in the PriorityQueue
     visited = []
-    open_set_hash = {start}
+    open_set_hash = {start}  # Nodes already considered
 
     while not open_set.empty():          # Creating loop to visit each node
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
-
+        # This would be chosen as the next node to travel through
         current = open_set.get()[1]
 
         visited.append(current)
-        if current == end:
+        if current == end: # If destination is reached
             reconstruct_path(came_from, end, draw)
             end.make_end()
             return True
 
-        for neighbour in current.neighbors:
+        for neighbour in current.neighbors: # Consider each neighbour of current node
             if (neighbour not in visited) and (neighbour not in open_set_hash):
                 came_from[neighbour] = current
                 # print( neighbour.get_pos())
                 count += 1
+
+                # Add neighbour node to already considered list
                 open_set_hash.add(neighbour)
+
+                # Add neighbour node to Queue
                 open_set.put((count, neighbour))
+
+                # Set the next to be considered node as open
                 neighbour.make_open()
-
-        print(current.get_pos())
-
+        # Draw xD
         draw()
+
+        # Keep the color of the start node (not change to red)
         if current != start:
             current.make_closed()
-    print("EMpty set")
     return False
 
 
@@ -331,10 +339,9 @@ def main(win, width):
 
                     # aStar(lambda: draw(win, grid, ROWS, width),grid,start,end)
 
-                    # bfs(lambda: draw(win, grid, ROWS, width), grid, start, end)
+                    bfs(lambda: draw(win, grid, ROWS, width), grid, start, end)
 
-                    greedy_bfs(lambda: draw(win, grid, ROWS, width),
-                               grid, start, end)
+                    # greedy_bfs(lambda: draw(win, grid, ROWS, width),grid, start, end)
 
                 if event.key == pygame.K_c:
                     start = None

@@ -78,7 +78,7 @@ class Spot:
         pygame.draw.rect(
             win, self.color, (self.x, self.y, self.width, self.width))
 
-    def update_neighbors(self, grid): #4D
+    def update_neighbors(self, grid):  # 4D
         self.neighbors = []
         # DOWN
         if self.row < self.total_rows - 1 and not grid[self.row + 1][self.col].is_barrier():
@@ -102,7 +102,7 @@ def h(p1, p2):
     x1, y1 = p1
     x2, y2 = p2
     # return abs(x1 - x2) + abs(y1 - y2)  # mahanttan distance
-    return math.dist(p1,p2) #euclidean distance
+    return math.dist(p1, p2)  # euclidean distance
     # return max(abs(x1 - x2),abs(y1 - y2)) #chebyshev distance
 
 
@@ -142,7 +142,7 @@ def bfs(draw, grid, start, end):  # function for BFS
                 open_set_hash.add(neighbour)
                 open_set.put((count, neighbour))
                 neighbour.make_open()
-		
+
         print(current.get_pos())
 
         draw()
@@ -154,13 +154,19 @@ def bfs(draw, grid, start, end):  # function for BFS
 
 def greedy_bfs(draw, grid, start, end):
     count = 0
-    open_set = PriorityQueue()
+    open_set = PriorityQueue()  # Candidates for next node consideration
     open_set.put((0, start))
     came_from = {}
-    visited = [[False for x in range(50)]
-               for y in range(50)]  # Needs changing size
 
+    # Visited nodes (Each node only gets visited once)
+    # Nodes is marked "Visited" if it is put in the PriorityQueue
+    visited = [[False for x in range(50)]
+               for y in range(50)]
+
+    # Potential cost for each node using a heuristic function
     f_score = {spot: float("inf") for row in grid for spot in row}
+
+    # Potential cost for from starting node to destination node
     f_score[start] = h(start.get_pos(), end.get_pos())
 
     row, col = start.get_pos()
@@ -171,21 +177,29 @@ def greedy_bfs(draw, grid, start, end):
             if event.type == pygame.QUIT:
                 pygame.quit()
 
+        # Get node with least potential cost in PriorityQueue
+        # This would be chosen as the next node to travel through
         current = open_set.get()[1]
 
-        if current == end:
+        if current == end:  # If destination is reached
             reconstruct_path(came_from, end, draw)
             end.make_end()
             return True
 
-        for neighbor in current.neighbors:
+        for neighbor in current.neighbors:  # Consider each neighbour of current node
             row, col = neighbor.get_pos()
 
             if not visited[row][col]:
                 came_from[neighbor] = current
+
+                # Calculate potential cost of current node's neighbours
                 f_score[neighbor] = h(neighbor.get_pos(), end.get_pos())
-                visited[row][col] = True
+
+                # Add neighbour node to PriorityQueue
                 open_set.put((f_score[neighbor], neighbor))
+
+                # And set it as visited
+                visited[row][col] = True
                 neighbor.make_open()
         draw()
 
@@ -288,26 +302,27 @@ def main(win, width):
             if event.type == pygame.QUIT:
                 run = False
 
-            start = grid[0][0]  #make start node at row 0 column 0
+            start = grid[0][0]  # make start node at row 0 column 0
             start.make_start()
 
-            end = grid[ROWS-1][ROWS-1] #make end node on the bottom rigth corner 
+            # make end node on the bottom rigth corner
+            end = grid[ROWS-1][ROWS-1]
             end.make_end()
 
-			### make obstacle ###
-            gap = WIDTH //ROWS
-            for i in [1,5,7,11,16]:
-                for j in [1,2,3,4,5,9,10,11,14,17,19]:					
+            ### make obstacle ###
+            gap = WIDTH // ROWS
+            for i in [1, 5, 7, 11, 16]:
+                for j in [1, 2, 3, 4, 5, 9, 10, 11, 14, 17, 19]:
                     grid[i][j].make_barrier()
 
-            for k in [11,16]:
+            for k in [11, 16]:
                 grid[k][0].make_barrier()
-            for k in [10,11,12,13,14]:
-                for t in [3,5,8,14,15,18]:
+            for k in [10, 11, 12, 13, 14]:
+                for t in [3, 5, 8, 14, 15, 18]:
                     grid[k][t].make_barrier()
-			###########################
+                    ###########################
 
-			# press SPACE to start and update neighbors
+                    # press SPACE to start and update neighbors
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE and start and end:
                     for row in grid:
@@ -318,7 +333,8 @@ def main(win, width):
 
                     # bfs(lambda: draw(win, grid, ROWS, width), grid, start, end)
 
-                    greedy_bfs(lambda: draw(win, grid, ROWS, width),grid, start, end)
+                    greedy_bfs(lambda: draw(win, grid, ROWS, width),
+                               grid, start, end)
 
                 if event.key == pygame.K_c:
                     start = None

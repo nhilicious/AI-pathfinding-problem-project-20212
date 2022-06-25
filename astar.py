@@ -1,4 +1,5 @@
 from cmath import sqrt
+from itertools import count
 from pickle import FALSE
 from tkinter import Widget
 from turtle import width
@@ -114,9 +115,10 @@ def reconstruct_path(came_from, current, draw):
 
 
 def bfs(draw, grid, start, end):  # function for BFS
-    count = 0
+    visitedCount = 0  # Number of visited nodes
+    spaceCount = 0  # Number of space used to store nodes
     open_set = Queue()  # Candidates for next node consideration
-    open_set.put((count, start))
+    open_set.put((visitedCount, start))
     came_from = {}
 
     # Visited nodes (Each node only gets visited once)
@@ -132,22 +134,23 @@ def bfs(draw, grid, start, end):  # function for BFS
         current = open_set.get()[1]
 
         visited.append(current)
-        if current == end: # If destination is reached
+        if current == end:  # If destination is reached
             reconstruct_path(came_from, end, draw)
+            print(visitedCount, spaceCount)
             end.make_end()
             return True
 
-        for neighbour in current.neighbors: # Consider each neighbour of current node
+        for neighbour in current.neighbors:  # Consider each neighbour of current node
             if (neighbour not in visited) and (neighbour not in open_set_hash):
                 came_from[neighbour] = current
                 # print( neighbour.get_pos())
-                count += 1
 
                 # Add neighbour node to already considered list
                 open_set_hash.add(neighbour)
 
+                spaceCount += 1
                 # Add neighbour node to Queue
-                open_set.put((count, neighbour))
+                open_set.put((spaceCount, neighbour))
 
                 # Set the next to be considered node as open
                 neighbour.make_open()
@@ -157,11 +160,13 @@ def bfs(draw, grid, start, end):  # function for BFS
         # Keep the color of the start node (not change to red)
         if current != start:
             current.make_closed()
+            visitedCount += 1
     return False
 
 
 def greedy_bfs(draw, grid, start, end):
-    count = 0
+    visitedCount = 0  # Number of visited nodes
+    spaceCount = 0  # Number of space used to store nodes
     open_set = PriorityQueue()  # Candidates for next node consideration
     open_set.put((0, start))
     came_from = {}
@@ -191,6 +196,7 @@ def greedy_bfs(draw, grid, start, end):
 
         if current == end:  # If destination is reached
             reconstruct_path(came_from, end, draw)
+            print(visitedCount, spaceCount)
             end.make_end()
             return True
 
@@ -198,6 +204,7 @@ def greedy_bfs(draw, grid, start, end):
             row, col = neighbor.get_pos()
 
             if not visited[row][col]:
+                spaceCount += 1
                 came_from[neighbor] = current
 
                 # Calculate potential cost of current node's neighbours
@@ -213,11 +220,13 @@ def greedy_bfs(draw, grid, start, end):
 
         if current != start:
             current.make_closed()
+            visitedCount += 1
     return False
 
 
 def aStar(draw, grid, start, end):
-    count = 0
+    visitedCount = 0  # Number of visited nodes
+    spaceCount = 0  # Number of space used to store nodes
     open_set = PriorityQueue()
     open_set.put((0, count, start))
     came_from = {}
@@ -239,6 +248,7 @@ def aStar(draw, grid, start, end):
         if current == end:
             reconstruct_path(came_from, end, draw)
             end.make_end()
+            print(visitedCount, spaceCount)
             return True
 
         for neighbor in current.neighbors:
@@ -250,7 +260,7 @@ def aStar(draw, grid, start, end):
                 f_score[neighbor] = temp_g_score + \
                     h(neighbor.get_pos(), end.get_pos())
                 if neighbor not in open_set_hash:
-                    count += 1
+                    spaceCount += 1
                     open_set.put((f_score[neighbor], count, neighbor))
                     open_set_hash.add(neighbor)
                     neighbor.make_open()
@@ -259,6 +269,7 @@ def aStar(draw, grid, start, end):
 
         if current != start:
             current.make_closed()
+            visitedCount += 1
 
     return False
 
@@ -339,9 +350,9 @@ def main(win, width):
 
                     # aStar(lambda: draw(win, grid, ROWS, width),grid,start,end)
 
-                    bfs(lambda: draw(win, grid, ROWS, width), grid, start, end)
+                    # bfs(lambda: draw(win, grid, ROWS, width), grid, start, end)
 
-                    # greedy_bfs(lambda: draw(win, grid, ROWS, width),grid, start, end)
+                    greedy_bfs(lambda: draw(win, grid, ROWS, width),grid, start, end)
 
                 if event.key == pygame.K_c:
                     start = None

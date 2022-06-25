@@ -118,61 +118,6 @@ def reconstruct_path(came_from, current, draw):
 		draw()
 
 
-def aStar(draw, grid, start, end):
-	count = 0 # keep track when we insert item in queue, đo thứ tự ưu tiên khi pop
-	open_set = PriorityQueue()
-	open_set.put((0, count, start)) #put the start node with the f score = 0 to the open_set
-	came_from = {}  # keep track of parent of a node
-
-	# initialize the g value of other spots with infinity
-	g_score = {spot: float("inf") for row in grid for spot in row}
-	g_score[start] = 0  # g value of start node is 0
-	# initialize the f value of spot with infinity
-	f_score = {spot: float("inf") for row in grid for spot in row}
-	f_score[start] = h(start.get_pos(), end.get_pos())
-
-	open_set_hash = {start} # a queue keeps track of all the item in the priority queue
-
-	while not open_set.empty(): # while the open_set is not empty 
-		for event in pygame.event.get():
-			if event.type == pygame.QUIT:
-				pygame.quit()
-
-		# The get command dequeues the highest priority elements from the queue
-		current = open_set.get()[2] # take from the open_set the node with the lowest f-score and store to current;'[2]' return the spot
-		open_set_hash.remove(current) # synchronize the open_set with open_set_hash to keep track of item in open_set
-
-		if current == end: # if the current node is end node (or goal node)
-			reconstruct_path(came_from, end, draw) # generate real path
-			end.make_end()
-			return True
-
-		# generate each state 'neighbor' that come after 'current' node 
-		for neighbor in current.neighbors:
-			# the weight from neighbor to current node is 1, since each step has uniform cost
-			# temp_g_score is the cost from start to neighbor through current
-			temp_g_score = g_score[current] + 1
-
-			if temp_g_score < g_score[neighbor]:
-				# This path to neighbor is better than any previous one. Record it!
-				came_from[neighbor] = current
-				g_score[neighbor] = temp_g_score
-				f_score[neighbor] = temp_g_score + h(neighbor.get_pos(), end.get_pos())
-				if neighbor not in open_set_hash:
-					count += 1
-					open_set.put((f_score[neighbor], count, neighbor))
-					open_set_hash.add(neighbor)
-					neighbor.make_open()
-
-		draw()
-
-		if current != start:
-			current.make_closed()
-			
-	# Open set is empty but goal was never reached
-	return False
-
-
 def bfs(draw, grid, start, end):  # function for BFS
     count = 0
     open_set = Queue()  # Candidates for next node consideration
@@ -215,62 +160,6 @@ def bfs(draw, grid, start, end):  # function for BFS
         draw()
 
         # Keep the color of the start node (not change to red)
-        if current != start:
-            current.make_closed()
-    return False
-
-
-def greedy_bfs(draw, grid, start, end):
-    count = 0
-    open_set = PriorityQueue()  # Candidates for next node consideration
-    open_set.put((0, start))
-    came_from = {}
-
-    # Visited nodes (Each node only gets visited once)
-    # Nodes is marked "Visited" if it is put in the PriorityQueue
-    visited = [[False for x in range(50)]
-               for y in range(50)]
-
-    # Potential cost for each node using a heuristic function
-    f_score = {spot: float("inf") for row in grid for spot in row}
-
-    # Potential cost for from starting node to destination node
-    f_score[start] = h(start.get_pos(), end.get_pos())
-
-    row, col = start.get_pos()
-    visited[row][col] = True
-
-    while not open_set.empty():
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-
-        # Get node with least potential cost in PriorityQueue
-        # This would be chosen as the next node to travel through
-        current = open_set.get()[1]
-
-        if current == end:  # If destination is reached
-            reconstruct_path(came_from, end, draw)
-            end.make_end()
-            return True
-
-        for neighbor in current.neighbors:  # Consider each neighbour of current node
-            row, col = neighbor.get_pos()
-
-            if not visited[row][col]:
-                came_from[neighbor] = current
-
-                # Calculate potential cost of current node's neighbours
-                f_score[neighbor] = h(neighbor.get_pos(), end.get_pos())
-
-                # Add neighbour node to PriorityQueue
-                open_set.put((f_score[neighbor], neighbor))
-
-                # And set it as visited
-                visited[row][col] = True
-                neighbor.make_open()
-        draw()
-
         if current != start:
             current.make_closed()
     return False

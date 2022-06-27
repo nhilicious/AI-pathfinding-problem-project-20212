@@ -153,7 +153,7 @@ def aStar(draw, grid, start, end):
             reconstruct_path(came_from, end, draw)  # generate real path
             end.make_end()
             # print visited node and number of operations
-            print("Astar\t\t",spaceCount,"\t\t", visitedCount)
+            print("Astar\t\t", spaceCount, "\t\t", visitedCount)
             return True
 
         # generate each state 'neighbor' that come after 'current' node
@@ -185,11 +185,10 @@ def aStar(draw, grid, start, end):
 
 
 def bfs(draw, grid, start, end):  # function for BFS
-    count = 0;
     visitedCount = 0  # Number of visited nodes
     spaceCount = 0  # Number of space used to store nodes
     open_set = Queue()  # Candidates for next node consideration
-    open_set.put((count, start))
+    open_set.put((spaceCount, start))
     came_from = {}
 
     # Visited nodes (Each node only gets visited once)
@@ -208,7 +207,7 @@ def bfs(draw, grid, start, end):  # function for BFS
         if current == end:  # If destination is reached
             reconstruct_path(came_from, end, draw)
             end.make_end()
-            print("BFS\t\t\t",spaceCount,"\t\t", visitedCount)
+            print("BFS\t\t\t", spaceCount, "\t\t", visitedCount)
             return True
 
         for neighbour in current.neighbors:  # Consider each neighbour of current node
@@ -268,7 +267,7 @@ def greedy_bfs(draw, grid, start, end):
         if current == end:  # If destination is reached
             reconstruct_path(came_from, end, draw)
             end.make_end()
-            print("Greedy BFS\t",spaceCount,"\t\t", visitedCount)
+            print("Greedy BFS\t", spaceCount, "\t\t", visitedCount)
             return True
 
         for neighbor in current.neighbors:  # Consider each neighbour of current node
@@ -346,7 +345,7 @@ def main(win, width):
     end = None
     run = True
 
-    p_cnt = 0; # print title 
+    p_cnt = 0  # print title
 
     while run:
         draw(win, grid, ROWS, width)
@@ -394,7 +393,7 @@ def main(win, width):
                     # update neighbor list of each spot
                     for row in grid:
                         for spot in row:
-                            spot.update_neighbors(grid)                    
+                            spot.update_neighbors(grid)
                     # algorithms
                     if p_cnt == 0:
                         print("\t\t\tVisitedNode\tOperations")
@@ -412,7 +411,7 @@ def main(win, width):
                     for row in grid:
                         for spot in row:
                             spot.update_neighbors(grid)
-                    #algorithms
+                    # algorithms
                     if p_cnt == 0:
                         print("\t\t\tVisitedNode\tOperations")
                         p_cnt += 1
@@ -429,11 +428,12 @@ def main(win, width):
                     for row in grid:
                         for spot in row:
                             spot.update_neighbors(grid)
-                    #algorithms
+                    # algorithms
                     if p_cnt == 0:
                         print("\t\t\tVisitedNode\tOperations")
                         p_cnt += 1
-                    greedy_bfs(lambda: draw(win, grid, ROWS, width), grid, start, end)                
+                    greedy_bfs(lambda: draw(win, grid, ROWS, width),
+                               grid, start, end)
 
                 if event.key == pygame.K_c:  # press C button to restart
                     start = None

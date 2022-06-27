@@ -106,13 +106,20 @@ class Spot:
         return False
 
 
-def h(p1, p2):  # heuristic function
+def h_mah(p1, p2):  # heuristic function
     x1, y1 = p1
     x2, y2 = p2
-    # return abs(x1 - x2) + abs(y1 - y2) # mahanttan distance
-    return math.dist(p1, p2)  # euclidean distance
+    return abs(x1 - x2) + abs(y1 - y2) # mahanttan distance
+    # return math.dist(p1, p2)  # euclidean distance
     # return max(abs(x1 - x2),abs(y1 - y2)) # chebyshev distance
 
+
+def h_euclidean(p1, p2):  # heuristic function
+    x1, y1 = p1
+    x2, y2 = p2
+    # return abs(x1 - x2) + abs(y1 - y2)  # mahanttan distance
+    return math.dist(p1, p2)  # euclidean distance
+    # return max(abs(x1 - x2),abs(y1 - y2)) # chebyshev distance
 
 def reconstruct_path(came_from, current, draw):
     pathcost = 0
@@ -124,7 +131,7 @@ def reconstruct_path(came_from, current, draw):
     return pathcost
 
 
-def aStar(draw, grid, start, end):
+def aStar_mah(draw, grid, start, end):
     count = 0  # dem thu tu add vao priority queue
     pathcost = 0
     visitedCount = 0  # Number of visited nodes
@@ -139,7 +146,7 @@ def aStar(draw, grid, start, end):
     g_score[start] = 0  # g value of start node is 0
     # initialize the f value of spot with infinity
     f_score = {spot: float("inf") for row in grid for spot in row}
-    f_score[start] = h(start.get_pos(), end.get_pos())
+    f_score[start] = h_mah(start.get_pos(), end.get_pos())
 
     # a queue keeps track of all the item in the priority queue
     open_set_hash = {start}
@@ -160,7 +167,7 @@ def aStar(draw, grid, start, end):
             end.make_end()
             start.make_start()
             # print visited node and number of operations
-            print("Astar\t\t", visitedCount, "\t\t", pathcost)
+            print("Manhattan\t", visitedCount, "\t\t", pathcost)
             return True
 
         # generate each state 'neighbor' that come after 'current' node
@@ -181,7 +188,7 @@ def aStar(draw, grid, start, end):
             came_from[neighbor] = current
             g_score[neighbor] = temp_g_score
             f_score[neighbor] = g_score[neighbor] + \
-                h(neighbor.get_pos(), end.get_pos())
+                h_mah(neighbor.get_pos(), end.get_pos())
             count += 1
             open_set.put((f_score[neighbor], count, neighbor))
             open_set_hash.add(neighbor)
@@ -194,116 +201,74 @@ def aStar(draw, grid, start, end):
     return False
 
 
-def bfs(draw, grid, start, end):  # function for BFS
+def aStar_euclidean(draw, grid, start, end):
+    count = 0  # dem thu tu add vao priority queue
     pathcost = 0
     visitedCount = 0  # Number of visited nodes
     spaceCount = 0  # Number of space used to store nodes
-    open_set = Queue()  # Candidates for next node consideration
-    open_set.put((spaceCount, start))
+    open_set = PriorityQueue()
+    open_set.put((0, count, start))
     came_from = {}
 
-    # Visited nodes (Each node only gets visited once)
-    # Nodes is marked "Visited" if it is put in the PriorityQueue
-    visited = []
-    open_set_hash = {start}  # Nodes already considered
-
-    while not open_set.empty():          # Creating loop to visit each node
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-        # This would be chosen as the next node to travel through
-        current = open_set.get()[1]
-
-        visited.append(current)
-        if current == end:  # If destination is reached
-            pathcost = reconstruct_path(came_from, end, draw)
-            end.make_end()
-            print("BFS\t\t", visitedCount, "\t\t", pathcost)
-            return True
-
-        for neighbour in current.neighbors:  # Consider each neighbour of current node
-            if (neighbour not in visited) and (neighbour not in open_set_hash):
-                came_from[neighbour] = current
-                # print( neighbour.get_pos())
-                spaceCount += 1
-
-                # Add neighbour node to already considered list
-                open_set_hash.add(neighbour)
-
-                # Add neighbour node to Queue
-                open_set.put((spaceCount, neighbour))
-
-                # Set the next to be considered node as open
-                neighbour.make_open()
-        # Draw xD
-        draw()
-
-        # Keep the color of the start node (not change to red)
-        visitedCount += 1
-        if current != start:
-            current.make_closed()
-    return False
-
-
-def greedy_bfs(draw, grid, start, end):
-    pathcost = 0
-    visitedCount = 0  # Number of visited nodes
-    spaceCount = 0  # Number of space used to store nodes
-    open_set = PriorityQueue()  # Candidates for next node consideration
-    open_set.put((0, start))
-    came_from = {}
-
-    # Visited nodes (Each node only gets visited once)
-    # Nodes is marked "Visited" if it is put in the PriorityQueue
-    visited = [[False for x in range(50)]
-               for y in range(50)]
-
-    # Potential cost for each node using a heuristic function
+    # INITIALIZE
+    # initialize the g value of other spots with infinity
+    g_score = {spot: float("inf") for row in grid for spot in row}
+    g_score[start] = 0  # g value of start node is 0
+    # initialize the f value of spot with infinity
     f_score = {spot: float("inf") for row in grid for spot in row}
+    f_score[start] = h_euclidean(start.get_pos(), end.get_pos())
 
-    # Potential cost for from starting node to destination node
-    f_score[start] = h(start.get_pos(), end.get_pos())
-
-    row, col = start.get_pos()
-    visited[row][col] = True
+    # a queue keeps track of all the item in the priority queue
+    open_set_hash = {start}
 
     while not open_set.empty():
-        for event in pygame.event.get():
+        for event in pygame.event.get():  # press the X button on the top right corner to quit
             if event.type == pygame.QUIT:
                 pygame.quit()
 
-        # Get node with least potential cost in PriorityQueue
-        # This would be chosen as the next node to travel through
-        current = open_set.get()[1]
+        # take from the open_set the node with the lowest f-score and store to current;'[1]' return the spot
+        current = open_set.get()[2]
+        open_set_hash.remove(current)
+        # current.make_closed()
 
-        if current == end:  # If destination is reached
-            pathcost = reconstruct_path(came_from, end, draw)
+        if current == end:  # if the current node is end node (or goal node)
+            pathcost = reconstruct_path(
+                came_from, end, draw)  # generate real path
             end.make_end()
-            print("Greedy BFS\t", visitedCount, "\t\t", pathcost)
+            start.make_start()
+            # print visited node and number of operations
+            print("Euclidean\t", visitedCount, "\t\t", pathcost)
             return True
 
-        for neighbor in current.neighbors:  # Consider each neighbour of current node
-            row, col = neighbor.get_pos()
+        # generate each state 'neighbor' that come after 'current' node
+        for neighbor in current.neighbors:
+            # the weight from neighbor to current node is 1, since each step has uniform cost
+            # temp_g_score is the cost from start to neighbor through current
+            temp_g_score = g_score[current] + 1
 
-            if not visited[row][col]:
-                came_from[neighbor] = current
+            if neighbor.is_closed():
+                if g_score[neighbor] <= temp_g_score:
+                    continue
+                else:
+                    neighbor.reset()
+            if neighbor in open_set_hash:
+                if g_score[neighbor] <= temp_g_score:
+                    continue
+            neighbor.make_open()
+            came_from[neighbor] = current
+            g_score[neighbor] = temp_g_score
+            f_score[neighbor] = g_score[neighbor] + \
+                h_euclidean(neighbor.get_pos(), end.get_pos())
+            count += 1
+            open_set.put((f_score[neighbor], count, neighbor))
+            open_set_hash.add(neighbor)
 
-                # Calculate potential cost of current node's neighbours
-                f_score[neighbor] = h(neighbor.get_pos(), end.get_pos())
-
-                # Add neighbour node to PriorityQueue
-                open_set.put((f_score[neighbor], neighbor))
-
-                # And set it as visited
-                visited[row][col] = True
-                neighbor.make_open()
-                spaceCount += 1
-        draw()
+            spaceCount += 1
         visitedCount += 1
-        if current != start:
-            current.make_closed()
+        current.make_closed()
+        # draw()
+    # if Open set is empty but goal was never reached, return false
     return False
-
 
 def make_grid(rows, width):
     grid = []  # grid is 2D array whose elements are object of class Spot
@@ -395,7 +360,7 @@ def main(win, width):
                     end = None
 
             if event.type == pygame.KEYDOWN:  # when a key button is pressed and released
-                if event.key == pygame.K_a and start and end:
+                if event.key == pygame.K_m and start and end:
                     # reset state of spot that is not the start/end/barrier
                     for row in grid:
                         for spot in row:
@@ -410,9 +375,9 @@ def main(win, width):
                     if p_cnt == 0:
                         print("\t\tVisitedNode\tPathcost")
                         p_cnt += 1
-                    aStar(lambda: draw(win, grid, ROWS, width), grid, start, end)
+                    aStar_mah(lambda: draw(win, grid, ROWS, width), grid, start, end)
 
-                if event.key == pygame.K_b and start and end:
+                if event.key == pygame.K_e and start and end:
                     # reset state of spot that is not the start/end/barrier
                     for row in grid:
                         for spot in row:
@@ -427,25 +392,8 @@ def main(win, width):
                     if p_cnt == 0:
                         print("\t\tVisitedNode\tPathcost")
                         p_cnt += 1
-                    bfs(lambda: draw(win, grid, ROWS, width), grid, start, end)
-
-                if event.key == pygame.K_g and start and end:
-                    # reset state of spot that is not the start/end/barrier
-                    for row in grid:
-                        for spot in row:
-                            if spot.is_start() == 0 and spot.is_end() == 0 and spot.is_barrier() == 0:
-                                spot.reset()
-
-                    # update neighbor list of each spot
-                    for row in grid:
-                        for spot in row:
-                            spot.update_neighbors(grid)
-                    # algorithms
-                    if p_cnt == 0:
-                        print("\t\tVisitedNode\tPathcost")
-                        p_cnt += 1
-                    greedy_bfs(lambda: draw(win, grid, ROWS, width),
-                               grid, start, end)
+                    aStar_euclidean(lambda: draw(win, grid, ROWS, width),
+                              grid, start, end)
 
                 if event.key == pygame.K_c:  # press C button to restart
                     start = None

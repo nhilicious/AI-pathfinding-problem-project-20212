@@ -15,7 +15,8 @@ WIN = pygame.display.set_mode((WIDTH, WIDTH))
 # set title for pygame window
 # pygame.display.set_caption("BFS Path Finding Algorithm")
 # pygame.display.set_caption("Greedy BFS Path Finding Algorithm")
-pygame.display.set_caption("A* Path Finding Algorithm")
+# pygame.display.set_caption("A* Path Finding Algorithm")
+pygame.display.set_caption("Path Finding Algorithm")
 
 # colors in RGB
 RED = (255, 0, 0)
@@ -151,6 +152,8 @@ def aStar(draw, grid, start, end):
         if current == end:  # if the current node is end node (or goal node)
             reconstruct_path(came_from, end, draw)  # generate real path
             end.make_end()
+            # print visited node and number of operations
+            print("Astar\t\t",spaceCount,"\t\t", visitedCount)
             return True
 
         # generate each state 'neighbor' that come after 'current' node
@@ -175,13 +178,14 @@ def aStar(draw, grid, start, end):
             open_set_hash.add(neighbor)
             came_from[neighbor] = current
             spaceCount += 1
-    visitedCount += 1
+        visitedCount += 1
     # draw()
     # if Open set is empty but goal was never reached, return false
     return False
 
 
 def bfs(draw, grid, start, end):  # function for BFS
+    count = 0;
     visitedCount = 0  # Number of visited nodes
     spaceCount = 0  # Number of space used to store nodes
     open_set = Queue()  # Candidates for next node consideration
@@ -204,6 +208,7 @@ def bfs(draw, grid, start, end):  # function for BFS
         if current == end:  # If destination is reached
             reconstruct_path(came_from, end, draw)
             end.make_end()
+            print("BFS\t\t\t",spaceCount,"\t\t", visitedCount)
             return True
 
         for neighbour in current.neighbors:  # Consider each neighbour of current node
@@ -263,6 +268,7 @@ def greedy_bfs(draw, grid, start, end):
         if current == end:  # If destination is reached
             reconstruct_path(came_from, end, draw)
             end.make_end()
+            print("Greedy BFS\t",spaceCount,"\t\t", visitedCount)
             return True
 
         for neighbor in current.neighbors:  # Consider each neighbour of current node
@@ -338,30 +344,16 @@ def main(win, width):
 
     start = None
     end = None
-
     run = True
+
+    p_cnt = 0; # print title 
+
     while run:
         draw(win, grid, ROWS, width)
         for event in pygame.event.get():  # loop through the events happened
 
             if event.type == pygame.QUIT:  # press the X button at the top righthand corner of the screen
                 run = False
-
-            # add fixed start and goal
-            start = grid[4][4]
-            start.make_start()
-            end = grid[11][11]
-            end.make_end()
-
-            # # add fixed obstacle
-            grid[12][4].make_barrier()
-            grid[11][4].make_barrier()
-            grid[10][4].make_barrier()
-            grid[7][11].make_barrier()
-            grid[8][11].make_barrier()
-            grid[9][9].make_barrier()
-            grid[10][9].make_barrier()
-            grid[11][9].make_barrier()
 
             # '0' means the LEFT MOUSE button
             if pygame.mouse.get_pressed()[0]:
@@ -392,8 +384,24 @@ def main(win, width):
                     end = None
 
             if event.type == pygame.KEYDOWN:  # when a key button is pressed and released
-                # press the SPACE button and both start and end point have already been initialized
-                if event.key == pygame.K_SPACE and start and end:
+                if event.key == pygame.K_a and start and end:
+                    # reset state of spot that is not the start/end/barrier
+                    for row in grid:
+                        for spot in row:
+                            if spot.is_start() == 0 and spot.is_end() == 0 and spot.is_barrier() == 0:
+                                spot.reset()
+
+                    # update neighbor list of each spot
+                    for row in grid:
+                        for spot in row:
+                            spot.update_neighbors(grid)                    
+                    # algorithms
+                    if p_cnt == 0:
+                        print("\t\t\tVisitedNode\tOperations")
+                        p_cnt += 1
+                    aStar(lambda: draw(win, grid, ROWS, width), grid, start, end)
+
+                if event.key == pygame.K_b and start and end:
                     # reset state of spot that is not the start/end/barrier
                     for row in grid:
                         for spot in row:
@@ -404,17 +412,34 @@ def main(win, width):
                     for row in grid:
                         for spot in row:
                             spot.update_neighbors(grid)
+                    #algorithms
+                    if p_cnt == 0:
+                        print("\t\t\tVisitedNode\tOperations")
+                        p_cnt += 1
+                    bfs(lambda: draw(win, grid, ROWS, width), grid, start, end)
 
-                    # algorithms
-                    aStar(lambda: draw(win, grid, ROWS, width), grid, start, end)
-                    # bfs(lambda: draw(win, grid, ROWS, width), grid, start, end)
-                    # greedy_bfs(lambda: draw(win, grid, ROWS, width), grid, start, end)
+                if event.key == pygame.K_g and start and end:
+                    # reset state of spot that is not the start/end/barrier
+                    for row in grid:
+                        for spot in row:
+                            if spot.is_start() == 0 and spot.is_end() == 0 and spot.is_barrier() == 0:
+                                spot.reset()
+
+                    # update neighbor list of each spot
+                    for row in grid:
+                        for spot in row:
+                            spot.update_neighbors(grid)
+                    #algorithms
+                    if p_cnt == 0:
+                        print("\t\t\tVisitedNode\tOperations")
+                        p_cnt += 1
+                    greedy_bfs(lambda: draw(win, grid, ROWS, width), grid, start, end)                
 
                 if event.key == pygame.K_c:  # press C button to restart
                     start = None
                     end = None
                     grid = make_grid(ROWS, width)
-                    # can replaced by resetting all spot ?
+                    p_cnt = 0
 
     pygame.quit()
 
